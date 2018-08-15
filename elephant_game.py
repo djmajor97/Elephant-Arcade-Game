@@ -2,7 +2,7 @@
 import pygame
 import random
 
-WIDTH = 480
+WIDTH = 1000
 HEIGHT = 600
 FPS = 30
 
@@ -43,13 +43,35 @@ class Elephant(pygame.sprite.Sprite):
         if self.rect.y < 0:
             self.rect.y = 0
 
+    def shoot(self):
+        water = Water(self.rect.right, self.rect.centery)
+        all_sprites.add(water)
+        waters.add(water)
+
+class Catcher(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load('catcher.jpeg')
+        self.image.set_colorkey(WHITE)
+        self.rect = self.image.get_rect()
+        self.rect.x = random.randrange(WIDTH+50, WIDTH+100)
+        self.rect.y = random.randrange(0, HEIGHT - self.rect.width)
+        self.speedy = random.randrange(2, 10)
+
+    def update(self):
+        self.rect.x -= self.speedy
+        if self.rect.x < -50:
+            self.rect.x = random.randrange(WIDTH+50, WIDTH+100)
+            self.rect.y = random.randrange(HEIGHT - self.rect.width)
+            self.speedy = random.randrange(2, 10)
+
 class Mouse(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.Surface((30, 40))
-        self.image.fill(RED)
+        self.image = pygame.image.load('mouse.png')
+        self.image.set_colorkey(WHITE)
         self.rect = self.image.get_rect()
-        self.rect.x = random.randrange(WIDTH - self.rect.width)
+        self.rect.x = random.randrange(100, WIDTH - self.rect.width)
         self.rect.y = random.randrange(-100, -40)
         self.speedy = random.randrange(1, 8)
 
@@ -59,6 +81,20 @@ class Mouse(pygame.sprite.Sprite):
             self.rect.x = random.randrange(WIDTH - self.rect.width)
             self.rect.y = random.randrange(-100, -40)
             self.speedy = random.randrange(1, 8)
+
+class Water(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load('water.jpeg')
+        self.rect = self.image.get_rect()
+        self.rect.y = y
+        self.rect.x = x
+        self.speedy = 10
+
+    def update(self):
+        self.rect.x += self.speedy
+        if self.rect.left > WIDTH -100:
+            self.kill()
 
 # initialize pygame and create window
 pygame.init()
@@ -71,9 +107,21 @@ clock = pygame.time.Clock()
 all_sprites = pygame.sprite.Group()
 elephant = Elephant()
 all_sprites.add(elephant)
-for i in range(20):
-    mouse= Mouse()
+
+mice = pygame.sprite.Group()
+for i in range(10):
+    mouse = Mouse()
     all_sprites.add(mouse)
+    mice.add(mouse)
+
+catchers = pygame.sprite.Group()
+for i in range(6):
+    catcher = Catcher()
+    all_sprites.add(catcher)
+    catchers.add(catcher)
+
+waters = pygame.sprite.Group()
+
 
 # Game loop
 running = True
@@ -85,9 +133,25 @@ while running:
         # check for closing window
         if event.type == pygame.QUIT:
             running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                elephant.shoot()
 
     # Update
     all_sprites.update()
+
+    # Check to see if water hit a catcher
+    hits = pygame.sprite.groupcollide(waters, catchers, True, True)
+    for hit in hits:
+        catcher = Catcher()
+        all_sprites.add(catcher)
+        catchers.add(catcher)
+
+    # check to see if a mob hit the player
+    hitsE = pygame.sprite.spritecollide(elephant, mice, False)
+    hitsC = pygame.sprite.spritecollide(elephant, catchers, False)
+    if hitsE or hitsC:
+        running = False
 
     # Draw / render
     screen.fill(WHITE)
