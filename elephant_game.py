@@ -1,6 +1,9 @@
 # Pygame template - skeleton for a new pygame project
 import pygame
 import random
+from os import path
+
+img_dir = path.join(path.dirname(__file__), 'img')
 
 WIDTH = 1000
 HEIGHT = 600
@@ -19,7 +22,7 @@ BLUE = (0, 0, 255)
 class Elephant(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.image.load('elephant.png')
+        self.image = pygame.image.load(path.join(img_dir, 'elephant.png'))
         self.image.set_colorkey(BLACK)
         self.rect = self.image.get_rect()
 
@@ -28,10 +31,10 @@ class Elephant(pygame.sprite.Sprite):
         if pressed[pygame.K_UP]: self.rect.y -= 4
         if pressed[pygame.K_DOWN]: self.rect.y += 4
         if pressed[pygame.K_LEFT]:
-            self.image = pygame.image.load('elephant_left.png')
+            self.image = pygame.image.load(path.join(img_dir, 'elephant_left.png'))
             self.rect.x -= 4
         if pressed[pygame.K_RIGHT]:
-            self.image = pygame.image.load('elephant.png')
+            self.image = pygame.image.load(path.join(img_dir, 'elephant.png'))
             self.rect.x += 4
 
         if self.rect.x > WIDTH - ELEPHANT_WIDTH:
@@ -51,7 +54,7 @@ class Elephant(pygame.sprite.Sprite):
 class Catcher(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.image.load('catcher.jpeg')
+        self.image = pygame.image.load(path.join(img_dir, 'catcher.png'))
         self.image.set_colorkey(WHITE)
         self.rect = self.image.get_rect()
         self.rect.x = random.randrange(WIDTH+50, WIDTH+100)
@@ -68,7 +71,7 @@ class Catcher(pygame.sprite.Sprite):
 class Mouse(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.image.load('mouse.png')
+        self.image = pygame.image.load(path.join(img_dir, 'mouse.png'))
         self.image.set_colorkey(WHITE)
         self.rect = self.image.get_rect()
         self.rect.x = random.randrange(100, WIDTH - self.rect.width)
@@ -85,7 +88,10 @@ class Mouse(pygame.sprite.Sprite):
 class Water(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.image.load('water.jpeg')
+        self.image = pygame.image.load(path.join(img_dir, 'water.png'))
+        self.image.set_colorkey(WHITE)
+        self.image = pygame.transform.scale(self.image, (50, 73))
+        self.image = pygame.transform.rotate(self.image, 90)
         self.rect = self.image.get_rect()
         self.rect.y = y
         self.rect.x = x
@@ -102,6 +108,9 @@ pygame.mixer.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("My Game")
 clock = pygame.time.Clock()
+
+background = pygame.image.load(path.join(img_dir, 'grass_background.jpg')).convert()
+background_rect = background.get_rect()
 
 # Sprites
 all_sprites = pygame.sprite.Group()
@@ -155,6 +164,7 @@ while running:
 
     # Draw / render
     screen.fill(WHITE)
+    screen.blit(background, background_rect)
     all_sprites.draw(screen)
     # *after* drawing everything, flip the display
     pygame.display.flip()
