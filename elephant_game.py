@@ -26,8 +26,11 @@ class Elephant(pygame.sprite.Sprite):
         self.image.set_colorkey(BLACK)
         self.rect = self.image.get_rect()
 
+
     def update(self):
         pressed = pygame.key.get_pressed()
+        hitsW = pygame.sprite.spritecollide(elephant, walls, False)
+        #if not hitsW:
         if pressed[pygame.K_UP]: self.rect.y -= 4
         if pressed[pygame.K_DOWN]: self.rect.y += 4
         if pressed[pygame.K_LEFT]:
@@ -45,6 +48,7 @@ class Elephant(pygame.sprite.Sprite):
             self.rect.x = 0
         if self.rect.y < 0:
             self.rect.y = 0
+
 
     def shoot(self):
         water = Water(self.rect.right, self.rect.centery)
@@ -102,12 +106,21 @@ class Water(pygame.sprite.Sprite):
         if self.rect.left > WIDTH -100:
             self.kill()
 
+class Wall(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.Surface((900, 30))
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
 # initialize pygame and create window
 pygame.init()
 pygame.mixer.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("My Game")
 clock = pygame.time.Clock()
+score = 0
 
 background = pygame.image.load(path.join(img_dir, 'grass_background.jpg')).convert()
 background_rect = background.get_rect()
@@ -116,6 +129,11 @@ background_rect = background.get_rect()
 all_sprites = pygame.sprite.Group()
 elephant = Elephant()
 all_sprites.add(elephant)
+
+walls = pygame.sprite.Group()
+#wall1 = Wall(0, 100)
+#all_sprites.add(wall1)
+#walls.add(wall1)
 
 mice = pygame.sprite.Group()
 for i in range(10):
@@ -131,6 +149,13 @@ for i in range(6):
 
 waters = pygame.sprite.Group()
 
+font_name = pygame.font.match_font('arial')
+def draw_text(surf, text, size, x, y):
+    font = pygame.font.Font(font_name, size)
+    text_surface = font.render(text, True, WHITE)
+    text_rect = text_surface.get_rect()
+    text_rect.midtop = (x, y)
+    surf.blit(text_surface, text_rect)
 
 # Game loop
 running = True
@@ -152,6 +177,7 @@ while running:
     # Check to see if water hit a catcher
     hits = pygame.sprite.groupcollide(waters, catchers, True, True)
     for hit in hits:
+        score += 1
         catcher = Catcher()
         all_sprites.add(catcher)
         catchers.add(catcher)
@@ -166,7 +192,9 @@ while running:
     screen.fill(WHITE)
     screen.blit(background, background_rect)
     all_sprites.draw(screen)
-    # *after* drawing everything, flip the display
+    draw_text(screen, "Fires doused: " + str(score), 18, WIDTH / 2, 10)
+    # Flip display after drawing everything
     pygame.display.flip()
 
 pygame.quit()
+
